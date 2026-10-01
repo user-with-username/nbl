@@ -1,7 +1,9 @@
 #include "analysis/cfg_resolver.h"
+#include "utils/flags.h"
 
 CfgResolver::CfgResolver()
 {
+    setFlag("LuauSolverV2", true);
     config.mode = Luau::Mode::Strict;
     config.enabledLint.setDefaults();
 }

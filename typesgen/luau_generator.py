@@ -4,7 +4,7 @@ from utils import split_args, strip_md
 
 
 class LuauGenerator:
-    READONLY_RE = re.compile(r"<sup>\s*\(?readonly\)?\s*</sup>", re.IGNORECASE)
+    READONLY_RE = re.compile(r"<sup>\s*\(?\s*readonly\s*\)?\s*</sup>", re.IGNORECASE)
     NIL_RE = re.compile(r"\bnil\b", re.IGNORECASE)
     LIST_RE = re.compile(r"список\s+объектов\s+(?:класса\s+)?([A-Z][A-Za-z0-9_]*)")
     LISTENER_HINT_RE = re.compile(r"Использует\s+класс\s+([A-Z][A-Za-z0-9_]*)", re.IGNORECASE)
@@ -205,7 +205,8 @@ class LuauGenerator:
             else:
                 w(f"type {name} = {{")
                 for f in fields:
-                    w(f"    {f['name']}: {self._field_type(f)},")
+                    ro = "read " if f.get("readonly") else ""
+                    w(f"    {ro}{f['name']}: {self._field_type(f)},")
                 for m in methods:
                     w(f"    {m['name']}: {self._method_type(m, name)},")
                 w("}")
