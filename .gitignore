@@ -1,0 +1,49 @@
+# Build directories
+/build/
+/build-*/
+/cmake-build-*/
+ALL_BUILD.dir
+ZERO_CHECK.dir
+validator.dir
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Generated files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+
+# IDE
+.vscode/
+.idea/
+.vs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# FetchContent / external dependencies
+_deps/
+
+# Test / coverage
+coverage/
+*.gcda
+*.gcno
+*.gcov
+*.vcxproj
+*.filters
+*.slnx
+*/.venv
+*/__pycache__
+.venv
+.cache/
