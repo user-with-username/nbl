@@ -12,8 +12,14 @@ NBL requires Crow build system. Install it from [this repo](https://github.com/u
 git clone https://github.com/user-with-username/nbl
 ```
 
-2. Run it:
+2. Install it:
 
 ```shell
-crow run -- script.luau
+crow install --path .
+```
+
+3. Run it:
+
+```shell
+nbl script.luau
 ```
