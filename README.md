@@ -4,21 +4,16 @@ Tool for linting NB scripts
 
 ## Builing
 
+NBL requires Crow build system. Install it from [this repo](https://github.com/user-with-username/crow)
+
 1. Clone repo
 
 ```shell
 git clone https://github.com/user-with-username/nbl
 ```
 
-2. Build it via CMake:
+2. Run it:
 
 ```shell
-cmake --build build
+crow run -- script.luau
 ```
-
-3. Then run
-
-```shell
-./build/linter script.luau
-```
-

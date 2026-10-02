@@ -1,0 +1,7 @@
+[package]
+name = "nbl"
+version = "0.1.0"
+standard = "20"
+
+[dependencies]
+luau = { git = "https://github.com/luau-lang/luau.git" }
