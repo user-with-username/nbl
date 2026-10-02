@@ -1,6 +1,6 @@
 import re
 
-from utils import is_separator, split_row, strip_md
+from .utils import is_separator, split_row, strip_md
 
 
 class ReferenceParser:

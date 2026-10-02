@@ -1,9 +1,8 @@
 import csv
 import io
 
-from fetch import get_asset
-
-from utils import is_identifier, to_snake_upper
+from .fetch import get_asset
+from .utils import is_identifier, to_snake_upper
 
 CSV_FILES = ("csv_logic/characters.csv", "csv_logic/records.csv", "csv_logic/traits.csv")
 

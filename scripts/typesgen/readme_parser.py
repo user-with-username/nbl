@@ -1,6 +1,6 @@
 import re
 
-from utils import find_tables, strip_md
+from .utils import find_tables, strip_md
 
 
 class ReadmeParser:

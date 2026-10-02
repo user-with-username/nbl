@@ -3,9 +3,7 @@ name = "typesgen"
 version = "0.1.0"
 description = "Generates types.d.luau"
 requires-python = ">=3.10"
-dependencies = [
-    "requests",
-]
+dependencies = ["requests"]
 
 [project.scripts]
 typesgen = "typesgen.__main__:main"
@@ -13,3 +11,6 @@ typesgen = "typesgen.__main__:main"
 [build-system]
 requires = ["uv_build>=0.9,<0.10"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = "scripts"

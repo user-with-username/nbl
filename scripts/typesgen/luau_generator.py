@@ -1,6 +1,6 @@
 import re
 
-from utils import split_args, strip_md
+from .utils import split_args, strip_md
 
 
 class LuauGenerator:
