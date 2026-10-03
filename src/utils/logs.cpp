@@ -10,7 +10,7 @@ static constexpr const char *warning_color = "\x1b[38;2;250;204;21m";
 static constexpr const char *reset_color = "\x1b[0m";
 
 std::string format_location(const std::string &module_name,
-                                   const Luau::Location &location) {
+                            const Luau::Location &location) {
   std::string text = module_name + ":" +
                      std::to_string(location.begin.line + 1) + ":" +
                      std::to_string(location.begin.column + 1);

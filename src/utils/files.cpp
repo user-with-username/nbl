@@ -14,7 +14,7 @@ std::string read_file(const std::string &file) {
   return ss.str();
 }
 
-bool write_file(const std::string& file, const std::string& content) {
+bool write_file(const std::string &file, const std::string &content) {
   std::ofstream f(file, std::ios::binary);
 
   if (!f)
