@@ -53,6 +53,7 @@ type AttackOrigin = {
     REDIRECT_SHIELD: AttackOrigin,
     STAR_POWER: AttackOrigin,
     ULTI: AttackOrigin,
+    UNKNOWN: AttackOrigin,
     UNUSED_14: AttackOrigin,
     UNUSED_15: AttackOrigin,
     UNUSED_16: AttackOrigin,
