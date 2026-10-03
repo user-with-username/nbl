@@ -27,6 +27,12 @@ type AnyGameObjectData =
     | ItemData
     | AreaEffectData
 
+type AnyIterable =
+    | AnyList
+
+type AnyList =
+    | ArrayList
+
 type DamageEventListener = (source: LogicCharacter, projectile: LogicProjectile, damage: number, data: AnyData, origin: AttackOrigin) -> ()
 type SkillEventListener = (skill: Skill) -> ()
 type SourceListener = (origin: AttackOrigin) -> ()
@@ -911,7 +917,7 @@ type Server = {
     hasIntroSkip: boolean,
     read objectManager: GameObjectManager,
     read map: TileMap,
-    getClientInfo: (self: Server, index: number) -> ClientInfo,
+    getClientInfo: (self: Server, index: number) -> ClientInfo?,
     isIntroFinished: (self: Server) -> boolean,
     getRandomInt: (self: Server, N: number, M: number) -> number,
     debugFinishBattle: (self: Server, team: number) -> (),
@@ -919,12 +925,12 @@ type Server = {
 declare Server: Server
 
 type GameObjectManager = {
-    getObject: (self: GameObjectManager, id: number) -> AnyLogicGameObject,
-    addObject: (self: GameObjectManager, object: AnyLogicGameObject) -> (),
-    getCharacters: (self: GameObjectManager) -> Iterable<LogicCharacter>,
-    getAreaEffects: (self: GameObjectManager) -> Iterable<LogicAreaEffect>,
-    getItems: (self: GameObjectManager) -> Iterable<LogicItem>,
-    getProjectiles: (self: GameObjectManager) -> Iterable<LogicProjectile>,
+    getObject: (self: GameObjectManager, id: number) -> AnyLogicGameObject?,
+    addObject: (self: GameObjectManager, object: AnyLogicGameObject?) -> (),
+    getCharacters: (self: GameObjectManager) -> AnyIterable<LogicCharacter>,
+    getAreaEffects: (self: GameObjectManager) -> AnyIterable<LogicAreaEffect>,
+    getItems: (self: GameObjectManager) -> AnyIterable<LogicItem>,
+    getProjectiles: (self: GameObjectManager) -> AnyIterable<LogicProjectile>,
 }
 declare GameObjectManager: GameObjectManager
 
@@ -946,8 +952,8 @@ type ClientInfo = {
     read emoteUsedIndex: number,
     read emoteUsedTick: number,
     read isOverchargeActive: boolean,
-    read accessory: Accessory,
-    getSkinData: (self: ClientInfo) -> SkinData,
+    read accessory: Accessory?,
+    getSkinData: (self: ClientInfo) -> SkinData?,
     getAttackTeam: (self: ClientInfo) -> number,
 }
 declare ClientInfo: ClientInfo
@@ -965,15 +971,15 @@ type LogicGameObject = {
     setPosition: (self: LogicGameObject, x: number, y: number, z: number) -> (),
     isAlive: (self: LogicGameObject) -> boolean,
     getType: (self: LogicGameObject) -> number,
-    getSkinData: (self: LogicGameObject) -> SkinData,
+    getSkinData: (self: LogicGameObject) -> SkinData?,
     isOverchargeActive: (self: LogicGameObject) -> boolean,
     setIndex: (self: LogicGameObject, index: number, team: number) -> (),
 }
 declare LogicGameObject: LogicGameObject
 
 type Traits = {
-    add: (self: Traits, data: TraitData) -> (),
-    remove: (self: Traits, data: TraitData) -> boolean,
+    add: (self: Traits, data: TraitData?) -> (),
+    remove: (self: Traits, data: TraitData?) -> boolean,
     getComponent: (self: Traits, type: TraitType) -> TraitData?,
 }
 declare Traits: Traits
@@ -1004,33 +1010,33 @@ type LogicCharacter = {
     read lastDamageSourceIndex: number,
     read hasRespawnShield: boolean,
     read consShieldValue: number,
-    read takingDamageListeners: List<DamageEventListener>,
-    read dealingDamageListeners: List<DamageEventListener>,
-    read deathListeners: List<SourceListener>,
-    read skillUseListeners: List<SkillEventListener>,
-    read startOverchargeListeners: List<BasicListener>,
+    read takingDamageListeners: AnyList,
+    read dealingDamageListeners: AnyList,
+    read deathListeners: AnyList,
+    read skillUseListeners: AnyList,
+    read startOverchargeListeners: AnyList,
     setPosition: (self: LogicCharacter, x: number, y: number, z: number) -> (),
     isAlive: (self: LogicCharacter) -> boolean,
     getType: (self: LogicCharacter) -> number,
-    getSkinData: (self: LogicCharacter) -> SkinData,
+    getSkinData: (self: LogicCharacter) -> SkinData?,
     isOverchargeActive: (self: LogicCharacter) -> boolean,
     setIndex: (self: LogicCharacter, index: number, team: number) -> (),
-    takeDamage: (self: LogicCharacter, srcIndex: number, damage: number, ulti: number, attacker: LogicCharacter, projectile: LogicProjectile, hasIndication: boolean, hasHighlight: boolean, srcX: number, srcY: number, someData: AnyData, forceProtected: boolean, origin: AttackOrigin, forceAll: boolean, makeVisible: boolean, disallowSpawns: boolean, extraValue: number) -> boolean,
-    takeHeal: (self: LogicCharacter, srcIndex: number, damage: number, hasIndication: boolean, someData: AnyData, origin: AttackOrigin) -> boolean,
+    takeDamage: (self: LogicCharacter, srcIndex: number, damage: number, ulti: number, attacker: LogicCharacter?, projectile: LogicProjectile?, hasIndication: boolean, hasHighlight: boolean, srcX: number, srcY: number, someData: AnyData?, forceProtected: boolean, origin: AttackOrigin, forceAll: boolean, makeVisible: boolean, disallowSpawns: boolean, extraValue: number) -> boolean,
+    takeHeal: (self: LogicCharacter, srcIndex: number, damage: number, hasIndication: boolean, someData: AnyData?, origin: AttackOrigin) -> boolean,
     stopMovement: (self: LogicCharacter) -> (),
     moveTo: (self: LogicCharacter, x: number, y: number, hasCustomSpeed: boolean, customSpeed: number, isNw: boolean, useTeleports: boolean) -> (),
     isPlayerControlRemoved: (self: LogicCharacter) -> boolean,
-    getWeaponSkill: (self: LogicCharacter) -> Skill,
-    getUltiSkill: (self: LogicCharacter) -> Skill,
-    getSkill: (self: LogicCharacter, data: SkillData) -> Skill,
-    useSkill: (self: LogicCharacter, data: SkillData, x: number, y: number, isAutoAim: boolean) -> boolean,
+    getWeaponSkill: (self: LogicCharacter) -> Skill?,
+    getUltiSkill: (self: LogicCharacter) -> Skill?,
+    getSkill: (self: LogicCharacter, data: SkillData?) -> Skill?,
+    useSkill: (self: LogicCharacter, data: SkillData?, x: number, y: number, isAutoAim: boolean) -> boolean,
     increaseMaxHitPoints: (self: LogicCharacter, value: number, powerUps: boolean) -> (),
-    teleport: (self: LogicCharacter, x: number, y: number, srcAreaEffect: AreaEffectData, destAreaEffect: AreaEffectData, damage: number, ultiCharge: number) -> (),
-    spawnCirclingAreaEffect: (self: LogicCharacter, damageBonus: number, data: AreaEffectData, origin: AttackOrigin, applyOwnerBuffs: boolean, followOwner: boolean) -> LogicAreaEffect,
+    teleport: (self: LogicCharacter, x: number, y: number, srcAreaEffect: AreaEffectData?, destAreaEffect: AreaEffectData?, damage: number, ultiCharge: number) -> (),
+    spawnCirclingAreaEffect: (self: LogicCharacter, damageBonus: number, data: AreaEffectData?, origin: AttackOrigin, applyOwnerBuffs: boolean, followOwner: boolean) -> LogicAreaEffect?,
     getPet: (self: LogicCharacter, movingOnly: boolean, standingOnly: boolean) -> LogicCharacter?,
     blockHealthRegen: (self: LogicCharacter) -> (),
-    addStatusEffect: (self: LogicCharacter, data: StatusEffectData, srcIndex: number, srcTeam: number, origin: AttackOrigin, attacker: LogicCharacter) -> StatusEffect?,
-    addStatusEffectSelf: (self: LogicCharacter, data: StatusEffectData, origin: AttackOrigin) -> StatusEffect,
+    addStatusEffect: (self: LogicCharacter, data: StatusEffectData?, srcIndex: number, srcTeam: number, origin: AttackOrigin, attacker: LogicCharacter?) -> StatusEffect?,
+    addStatusEffectSelf: (self: LogicCharacter, data: StatusEffectData?, origin: AttackOrigin) -> StatusEffect?,
     setInvisibility: (self: LogicCharacter, ticks: number, distanceToSee: number) -> (),
     setConsumableShield: (self: LogicCharacter, value: number, ticks: number) -> (),
     gainShield: (self: LogicCharacter, ticks: number, value: number) -> (),
@@ -1079,7 +1085,7 @@ type LogicProjectile = {
     setPosition: (self: LogicProjectile, x: number, y: number, z: number) -> (),
     isAlive: (self: LogicProjectile) -> boolean,
     getType: (self: LogicProjectile) -> number,
-    getSkinData: (self: LogicProjectile) -> SkinData,
+    getSkinData: (self: LogicProjectile) -> SkinData?,
     isOverchargeActive: (self: LogicProjectile) -> boolean,
     setIndex: (self: LogicProjectile, index: number, team: number) -> (),
     setFinishState: (self: LogicProjectile, finishState: number) -> (),
@@ -1096,18 +1102,18 @@ type LogicAreaEffect = {
     read team: number,
     read dimension: number,
     read traits: Traits,
-    read ownerCharacter: LogicCharacter,
+    read ownerCharacter: LogicCharacter?,
     read origin: AttackOrigin,
     damage: number,
     ultiEnergy: number,
     setPosition: (self: LogicAreaEffect, x: number, y: number, z: number) -> (),
     isAlive: (self: LogicAreaEffect) -> boolean,
     getType: (self: LogicAreaEffect) -> number,
-    getSkinData: (self: LogicAreaEffect) -> SkinData,
+    getSkinData: (self: LogicAreaEffect) -> SkinData?,
     isOverchargeActive: (self: LogicAreaEffect) -> boolean,
     setIndex: (self: LogicAreaEffect, index: number, team: number) -> (),
-    setSource: (self: LogicAreaEffect, index: number, team: number, ownerCharacter: LogicCharacter, origin: AttackOrigin) -> (),
-    isObjectInside: (self: LogicAreaEffect, object: AnyLogicGameObject) -> boolean,
+    setSource: (self: LogicAreaEffect, index: number, team: number, ownerCharacter: LogicCharacter?, origin: AttackOrigin) -> (),
+    isObjectInside: (self: LogicAreaEffect, object: AnyLogicGameObject?) -> boolean,
     destroy: (self: LogicAreaEffect) -> (),
     trigger: (self: LogicAreaEffect) -> (),
 }
@@ -1124,17 +1130,17 @@ type LogicItem = {
     read dimension: number,
     read traits: Traits,
     read isTriggered: boolean,
-    read triggeredCharacter: LogicCharacter,
-    read ownerCharacter: LogicCharacter,
+    read triggeredCharacter: LogicCharacter?,
+    read ownerCharacter: LogicCharacter?,
     read origin: AttackOrigin,
     sprayDataIndex: number,
     setPosition: (self: LogicItem, x: number, y: number, z: number) -> (),
     isAlive: (self: LogicItem) -> boolean,
     getType: (self: LogicItem) -> number,
-    getSkinData: (self: LogicItem) -> SkinData,
+    getSkinData: (self: LogicItem) -> SkinData?,
     isOverchargeActive: (self: LogicItem) -> boolean,
     setIndex: (self: LogicItem, index: number, team: number) -> (),
-    setSource: (self: LogicItem, index: number, team: number, ownerCharacter: LogicCharacter, origin: AttackOrigin) -> (),
+    setSource: (self: LogicItem, index: number, team: number, ownerCharacter: LogicCharacter?, origin: AttackOrigin) -> (),
     destroy: (self: LogicItem) -> (),
 }
 declare LogicItem: LogicItem
@@ -1151,14 +1157,14 @@ type TileMap = {
     read absSizeX: number,
     read absSizeY: number,
     destructTile: (self: TileMap, x: number, y: number, isBasicWeapon: boolean) -> (),
-    setDynamicTile: (self: TileMap, data: TileData, x: number, y: number, ownerCharacter: LogicCharacter) -> (),
+    setDynamicTile: (self: TileMap, data: TileData?, x: number, y: number, ownerCharacter: LogicCharacter?) -> (),
     getTile: (self: TileMap, x: number, y: number) -> Tile?,
 }
 declare TileMap: TileMap
 
 type Tile = {
     read data: TileData,
-    read dataOriginal: TileData,
+    read dataOriginal: TileData?,
     read x: number,
     read y: number,
     isDynamic: (self: Tile) -> boolean,
@@ -1270,11 +1276,34 @@ type TraitData = {
 }
 declare TraitData: TraitData
 
+type DamageEventListener = {}
+declare DamageEventListener: DamageEventListener
+
+type SkillEventListener = {}
+declare SkillEventListener: SkillEventListener
+
+type SourceListener = {}
+declare SourceListener: SourceListener
+
+type BasicListener = {}
+declare BasicListener: BasicListener
+
+type Iterable = {}
+declare Iterable: Iterable
+
+type List = {
+    get: (self: List, index: number) -> any,
+    add: (self: List, element: any) -> boolean,
+    size: (self: List) -> number,
+    indexOf: (self: List, element: any) -> number,
+}
+declare List: List
+
 type ArrayList = {
-    get: (self: ArrayList, arg0: number) -> any,
-    add: (self: ArrayList, arg0: any) -> boolean,
+    get: (self: ArrayList, index: number) -> any,
+    add: (self: ArrayList, element: any) -> boolean,
     size: (self: ArrayList) -> number,
-    indexOf: (self: ArrayList, arg0: any) -> number,
+    indexOf: (self: ArrayList, element: any) -> number,
 }
 declare ArrayList: ArrayList
 
