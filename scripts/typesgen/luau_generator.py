@@ -241,5 +241,6 @@ class LuauGenerator:
         w("    decode: (str: string) -> any,")
         w("    null: any,")
         w("}")
+        w("declare function require(path: string): any")
 
         return "\n".join(out) + "\n"

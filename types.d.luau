@@ -1290,3 +1290,4 @@ declare json: {
     decode: (str: string) -> any,
     null: any,
 }
+declare function require(path: string): any

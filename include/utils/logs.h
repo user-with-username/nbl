@@ -2,6 +2,8 @@
 #include <string>
 #include "Luau/Frontend.h"
 
+std::string format_location(const std::string& module, const Luau::Location& loc);
+
 class Diagnostics
 {
 public:

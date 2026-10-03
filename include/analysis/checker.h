@@ -3,6 +3,11 @@
 #include "Luau/Frontend.h"
 #include "../utils/logs.h"
 
-void check_script(Luau::Frontend& frontend,
-                  const std::string& script,
-                  Diagnostics& diagnostics);
+struct CheckOutput {
+    bool ok = false;
+    std::string bundle;
+};
+
+CheckOutput check_script(Luau::Frontend& frontend,
+                         const std::string& script,
+                         Diagnostics& diagnostics);

@@ -43,6 +43,7 @@ KNOWN_ENUM_CONSTANTS = {
         "UNUSED_16",
         "UNUSED_17",
         "WEAPON",
+        "UNKNOW",
     ],
 }
 
