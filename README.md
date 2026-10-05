@@ -6,7 +6,7 @@ Tool for linting NB scripts
 
 NBL requires Crow build system. Install it from [this repo](https://github.com/user-with-username/crow)
 
-1. Clone repo
+1. Clone repo:
 
 ```shell
 git clone https://github.com/user-with-username/nbl
@@ -15,7 +15,7 @@ git clone https://github.com/user-with-username/nbl
 2. Install it:
 
 ```shell
-crow install --path . --bin nbl-cli
+crow install --path . --bin nbl
 ```
 
 3. Run it:
