@@ -1,0 +1,11 @@
+[package]
+name = "nbl"
+version = "0.1.0"
+standard = "20"
+
+[dependencies]
+nbl-core = { path = "../nbl-core" }
+nbl-types = { path = "../nbl-types" }
+cpp_httplib = "0.15.3"
+nlohmann_json = "*"
+openssl = { system = true, libs = ["ssl", "crypto"] }

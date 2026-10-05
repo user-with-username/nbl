@@ -1,0 +1,7 @@
+[package]
+name = "nbl-types"
+version = "0.1.0"
+standard = "20"
+
+[dependencies]
+nbl-core = { path = "../nbl-core" }

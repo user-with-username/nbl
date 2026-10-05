@@ -15,7 +15,7 @@ git clone https://github.com/user-with-username/nbl
 2. Install it:
 
 ```shell
-crow install --path .
+crow install --path . --bin nbl-cli
 ```
 
 3. Run it:

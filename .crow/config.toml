@@ -1,0 +1,5 @@
+[build]
+compiler = "g++"
+
+[target.'"cfg(windows)"'.build]
+libs = ["ws2_32", "crypt32"]
