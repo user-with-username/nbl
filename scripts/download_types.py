@@ -9,7 +9,7 @@ REPO = "nulls-mods-community/scripting-docs"
 FILES = ("globals.d.luau", "types.d.luau")
 TIMEOUT = 30
 REF = "main"
-OUT_DIR = Path("../nbl-types")
+OUT_DIR = Path(__file__).resolve().parent.parent / "packages" / "nbl-types"
 
 
 def raw_url(ref: str, name: str) -> str:
@@ -31,12 +31,6 @@ def fetch(url: str) -> bytes:
             )
         return resp.read()
 
-
-def looks_like_html(data: bytes) -> bool:
-    head = data.lstrip()[:64].lower()
-    return head.startswith((b"<!doctype html", b"<html"))
-
-
 def main() -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -44,15 +38,7 @@ def main() -> int:
         url = raw_url(REF, name)
         dest = OUT_DIR / name
 
-        try:
-            data = fetch(url)
-        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
-            raise SystemExit(f"failed to download {url}: {e}")
-
-        if not data:
-            raise SystemExit(f"empty response for {url}")
-        if looks_like_html(data):
-            raise SystemExit(f"{url} returned HTML, not raw file")
+        data = fetch(url)
 
         if dest.exists() and dest.read_bytes() == data:
             continue

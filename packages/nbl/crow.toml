@@ -11,4 +11,4 @@ nlohmann_json = "*"
 openssl = { system = true, libs = ["ssl", "crypto"] }
 
 [build.hooks]
-pre = ["python ../scripts/download_types.py"]
+pre = ["python ../../scripts/download_types.py"]

@@ -2,7 +2,7 @@
 
 Tool for linting NB scripts
 
-## Builing
+## Building
 
 NBL requires Crow build system. Install it from [this repo](https://github.com/user-with-username/crow)
 
@@ -15,7 +15,7 @@ git clone https://github.com/user-with-username/nbl
 2. Install it:
 
 ```shell
-crow install --path . --bin nbl
+crow install --path packages/nbl --bin nbl
 ```
 
 3. Run it:
