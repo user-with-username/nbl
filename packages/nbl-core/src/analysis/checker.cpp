@@ -6,7 +6,6 @@
 #include "Luau/Frontend.h"
 
 #include "nbl/analysis/dep_graph.h"
-#include "nbl/compiler/bundler.h"
 #include "nbl/utils/files.h"
 
 namespace nbl::analysis {
@@ -24,9 +23,9 @@ std::vector<std::string> findTickModules(const DepGraph &graph) {
 
 } // namespace
 
-std::optional<std::string> check_script(Luau::Frontend &frontend,
-                                        const std::string &script,
-                                        nbl::utils::Diagnostics &diagnostics) {
+std::optional<DepGraph> check_script(Luau::Frontend &frontend,
+                                     const std::string &script,
+                                     nbl::utils::Diagnostics &diagnostics) {
   if (nbl::utils::is_bundle_file(script)) {
     diagnostics.error(script + ": refusing to type-check a .bundle.luau file");
     return std::nullopt;
@@ -62,7 +61,7 @@ std::optional<std::string> check_script(Luau::Frontend &frontend,
   if (diagnostics.has_errors())
     return std::nullopt;
 
-  return nbl::compiler::bundle(graph);
+  return graph;
 }
 
 } // namespace nbl::analysis

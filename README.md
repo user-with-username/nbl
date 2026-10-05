@@ -18,8 +18,8 @@ git clone https://github.com/user-with-username/nbl
 crow install --path packages/nbl --bin nbl
 ```
 
-3. Run it:
+## Usage
 
 ```shell
-nbl script.luau
+nbl run script.luau
 ```

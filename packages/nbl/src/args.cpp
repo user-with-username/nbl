@@ -1,76 +1,66 @@
 #include "args.h"
 
-#include <cstdlib>
-#include <iostream>
-#include <vector>
+#include <filesystem>
+#include <string>
+#include <string_view>
 
-#include "nbl/utils/files.h"
+#include <CLI/CLI.hpp>
 
 namespace nbl::cli {
 
 namespace {
 
-constexpr const char *kUsage =
-    "usage:\n"
-    "  nbl [--types <path|embedded:>] <file> [script.bundle.luau]\n"
-    "  nbl update";
+constexpr const char *kTypesDefault = "~/.nbl/types.d.luau, else embedded:";
 
-void print_usage_and_exit() {
-  std::cout << kUsage << '\n';
-  std::exit(0);
+std::string validate_types(const std::string &value) {
+  constexpr std::string_view kEmbedded = "embedded:";
+
+  if (value.rfind(kEmbedded, 0) == 0) {
+    if (value == "embedded:" || value == "embedded:globals" ||
+        value == "embedded:types")
+      return {};
+    return value + ": expected embedded:, embedded:globals or embedded:types";
+  }
+
+  std::error_code ec;
+  if (std::filesystem::is_regular_file(value, ec))
+    return {};
+
+  return value + ": no such file";
+}
+
+void add_check_options(CLI::App *command, Args &args) {
+  command->add_option("script", args.script, "script to check")
+      ->required()
+      ->check(CLI::ExistingFile);
+
+  command->add_option("--types", args.types, "type definitions to use")
+      ->type_name("FILE|embedded:[globals|types]")
+      ->default_str(kTypesDefault)
+      ->check(validate_types);
 }
 
 } // namespace
 
-std::optional<Args> parse_args(int argc, char *argv[],
-                               nbl::utils::Diagnostics &diagnostics) {
-  Args args;
-  std::vector<std::string> positional;
+void configure_cli(CLI::App &app, Args &args) {
+  app.require_subcommand(1);
 
-  for (int i = 1; i < argc; ++i) {
-    std::string arg = argv[i];
+  CLI::App *lint =
+      app.add_subcommand("lint", "type-check a script and print diagnostics");
+  add_check_options(lint, args);
+  lint->callback([&args] { args.command = Command::Lint; });
 
-    if (arg == "--help" || arg == "-h") {
-      print_usage_and_exit();
-    }
+  CLI::App *run =
+      app.add_subcommand("run", "type-check a script, then bundle it");
+  add_check_options(run, args);
+  run->add_option("-o,--output", args.output, "where to write the bundle")
+      ->type_name("FILE")
+      ->default_str("<script>.bundle.luau");
+  run->callback([&args] { args.command = Command::Run; });
 
-    if (arg == "--types") {
-      if (i + 1 >= argc) {
-        diagnostics.error("--types requires a value");
-        return std::nullopt;
-      }
-      args.types = argv[++i];
-      continue;
-    }
-
-    positional.push_back(std::move(arg));
-  }
-
-  if (positional.empty()) {
-    diagnostics.error(kUsage);
-    return std::nullopt;
-  }
-
-  if (positional[0] == "update") {
-    if (positional.size() != 1 || !args.types.empty()) {
-      diagnostics.error("`update` takes no arguments");
-      return std::nullopt;
-    }
-    args.command = Command::Update;
-    return args;
-  }
-
-  if (positional.size() > 2) {
-    diagnostics.error(kUsage);
-    return std::nullopt;
-  }
-
-  args.command = Command::Check;
-  args.script = positional[0];
-  args.output = (positional.size() == 2)
-                    ? positional[1]
-                    : nbl::utils::bundle_output_path(args.script);
-  return args;
+  app.add_subcommand("update",
+                     "download the latest definitions into ~/.nbl")
+      ->callback([&args] { args.command = Command::Update; });
 }
 
 } // namespace nbl::cli

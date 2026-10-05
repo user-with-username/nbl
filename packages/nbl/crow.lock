@@ -6,7 +6,13 @@ version = 1
 [[package]]
 name = "nbl"
 version = "0.1.0"
-dependencies = ["cpp_httplib 0.0.0 (registry+https://github.com/user-with-username/crow-registry#cpp_httplib@5c00bbf3)", "nbl-core 0.1.0", "nbl-types 0.1.0", "nlohmann_json 0.0.0 (registry+https://github.com/user-with-username/crow-registry#nlohmann_json@55f93686)", "openssl"]
+dependencies = ["cli11 0.0.0 (registry+https://github.com/user-with-username/crow-registry#cli11@37bb6edc)", "cpp_httplib 0.0.0 (registry+https://github.com/user-with-username/crow-registry#cpp_httplib@5c00bbf3)", "nbl-core 0.1.0", "nbl-types 0.1.0", "nlohmann_json 0.0.0 (registry+https://github.com/user-with-username/crow-registry#nlohmann_json@55f93686)", "openssl"]
+
+[[package]]
+name = "cli11"
+version = "0.0.0"
+source = "registry+https://github.com/user-with-username/crow-registry#cli11@37bb6edc"
+checksum = "37bb6edc5317e99af72ef48405e65d9ca5218861"
 
 [[package]]
 name = "cpp_httplib"

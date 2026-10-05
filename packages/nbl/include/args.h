@@ -1,22 +1,22 @@
 #pragma once
 
-#include <optional>
 #include <string>
 
-#include "nbl/utils/logs.h"
+namespace CLI {
+class App;
+}
 
 namespace nbl::cli {
 
-enum class Command { Check, Update };
+enum class Command { Lint, Run, Update };
 
 struct Args {
-  Command command = Command::Check;
+  Command command = Command::Lint;
   std::string script;
   std::string output;
   std::string types;
 };
 
-std::optional<Args> parse_args(int argc, char *argv[],
-                               nbl::utils::Diagnostics &diagnostics);
+void configure_cli(CLI::App &app, Args &args);
 
 } // namespace nbl::cli

@@ -9,6 +9,7 @@ nbl-types = { path = "../nbl-types" }
 cpp_httplib = "0.15.3"
 nlohmann_json = "*"
 openssl = { system = true, libs = ["ssl", "crypto"] }
+cli11 = "2.6.2"
 
 [build.hooks]
 pre = ["python ../../scripts/download_types.py"]

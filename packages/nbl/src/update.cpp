@@ -1,22 +1,77 @@
 #include "update.h"
 
+#include <cctype>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
-#include "github.h"
 #include "http.h"
 
 #include "nbl/types/dir.h"
 #include "nbl/utils/files.h"
 
-namespace fs = std::filesystem;
-
 namespace nbl::cli {
 
 namespace {
 
-constexpr const char *kOwner = "user-with-username";
-constexpr const char *kRepo = "nbl";
-constexpr const char *kAsset = "types.d.luau";
+constexpr const char *kRepo = "nulls-mods-community/scripting-docs";
+constexpr const char *kRef = "main";
+constexpr const char *kUserAgent = "nbl-fetch-docs/1.0";
+constexpr const char *kFiles[] = {nbl::types::kGlobalsFilename,
+                                  nbl::types::kTypesFilename};
+
+std::string raw_url(const std::string &name) {
+  return std::string("https://raw.githubusercontent.com/") + kRepo + "/" +
+         kRef + "/" + name;
+}
+
+bool looks_like_html(std::string_view body) {
+  size_t begin = 0;
+  while (begin < body.size() &&
+         std::isspace(static_cast<unsigned char>(body[begin])))
+    ++begin;
+
+  std::string head(body.substr(begin, 64));
+  for (char &c : head)
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+  return head.starts_with("<!doctype html") || head.starts_with("<html");
+}
+
+std::optional<std::string> fetch(const std::string &url,
+                                 nbl::utils::Diagnostics &diagnostics) {
+  HttpRequest request;
+  request.url = url;
+  request.headers = {std::string("User-Agent: ") + kUserAgent,
+                     "Accept: text/plain, */*"};
+
+  auto response = http_get(request);
+  if (!response || response->status != 200) {
+    diagnostics.error(url + ": download failed");
+    return std::nullopt;
+  }
+
+  if (response->body.empty()) {
+    diagnostics.error(url + ": empty response");
+    return std::nullopt;
+  }
+
+  if (looks_like_html(response->body)) {
+    diagnostics.error(url + ": returned HTML, not a raw file");
+    return std::nullopt;
+  }
+
+  return std::move(response->body);
+}
+
+struct Downloaded {
+  std::string name;
+  std::string path;
+  std::string body;
+};
 
 } // namespace
 
@@ -27,37 +82,32 @@ bool update_types(nbl::utils::Diagnostics &diagnostics) {
     return false;
   }
 
-  auto asset = latest_release_asset(kOwner, kRepo, kAsset);
-  if (!asset) {
-    diagnostics.error(std::string("cannot fetch ") + kAsset + " from " +
-                      kOwner + "/" + kRepo + " (network or API error)");
-    return false;
-  }
-  if (asset->url.empty()) {
-    diagnostics.error(std::string(kAsset) +
-                      ": release asset has no download URL");
-    return false;
+  std::vector<Downloaded> files;
+  for (const char *name : kFiles) {
+    auto body = fetch(raw_url(name), diagnostics);
+    if (!body)
+      return false;
+
+    files.push_back({name, (*dir / name).string(), std::move(*body)});
   }
 
-  HttpRequest req;
-  req.url = asset->url;
-  req.headers = {"Accept: application/octet-stream"};
-  auto resp = http_get(req);
-  if (!resp || resp->status != 200) {
-    diagnostics.error(std::string("failed to download ") + kAsset);
-    return false;
+  for (const Downloaded &file : files) {
+    if (auto current = nbl::utils::read_file_opt(file.path);
+        current && *current == file.body) {
+      diagnostics.info(file.name + " is up to date -> " + file.path);
+      continue;
+    }
+
+    if (!nbl::utils::write_file_atomic(file.path, file.body)) {
+      diagnostics.error(file.path + ": cannot write");
+      return false;
+    }
+
+    diagnostics.info("downloaded " + file.name + " (" +
+                     std::to_string(file.body.size()) + " bytes) -> " +
+                     file.path);
   }
 
-  const fs::path target = *dir / nbl::types::kTypesFilename;
-  if (!nbl::utils::write_file_atomic(target.string(), resp->body)) {
-    diagnostics.error("cannot write " + target.string());
-    return false;
-  }
-
-  diagnostics.info(std::string("downloaded ") + kAsset + " (" +
-                   std::to_string(resp->body.size()) + " bytes, release " +
-                   (asset->tag.empty() ? "<unknown>" : asset->tag) + ") -> " +
-                   target.string());
   return true;
 }
 
