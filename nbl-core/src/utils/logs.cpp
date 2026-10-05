@@ -78,6 +78,23 @@ void Diagnostics::add(const Luau::CheckResult &result,
       warning(format_location(module_name, lint.location) + ": " + lint.text);
 }
 
+void Diagnostics::add_definition(const Luau::LoadDefinitionFileResult &result,
+                                 const std::string &types_name) {
+  const int before = error_count;
+
+  for (const Luau::ParseError &parse_error : result.parseResult.errors)
+    error(format_location(types_name, parse_error.getLocation()) + ": " +
+          parse_error.getMessage());
+
+  if (result.module)
+    for (const Luau::TypeError &type_error : result.module->errors)
+      error(format_location(types_name, type_error.location) + ": " +
+            Luau::toString(type_error));
+
+  if (error_count == before)
+    error(types_name + ": type definitions could not be loaded");
+}
+
 void Diagnostics::print_summary() const {
   if (error_count + warning_count > 0)
     out_ << '\n';

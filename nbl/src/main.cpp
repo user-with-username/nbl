@@ -17,6 +17,9 @@ namespace {
 
 using nbl::utils::Diagnostics;
 
+/// Module name the type definitions are loaded under.
+constexpr const char *kTypesPackageName = "script";
+
 int run_check(const nbl::cli::Args &args, Diagnostics &diagnostics) {
   if (nbl::utils::is_bundle_file(args.script)) {
     diagnostics.error(args.script + ": input is already a bundle");
@@ -36,10 +39,19 @@ int run_check(const nbl::cli::Args &args, Diagnostics &diagnostics) {
   opts.runLintChecks = true;
   Luau::Frontend frontend(&files, &config, opts);
 
-  frontend.loadDefinitionFile(frontend.globals, frontend.globals.globalScope,
-                              std::move(resolved->content), "script",
-                              /*captureComments*/ false,
-                              /*typeCheckForAutocomplete*/ false);
+  const std::string types_name =
+      resolved->path.empty() ? "<embedded types>" : resolved->path;
+
+  Luau::LoadDefinitionFileResult loaded = frontend.loadDefinitionFile(
+      frontend.globals, frontend.globals.globalScope, resolved->content,
+      kTypesPackageName,
+      /*captureComments*/ false,
+      /*typeCheckForAutocomplete*/ false);
+
+  if (!loaded.success) {
+    diagnostics.add_definition(loaded, types_name);
+    return 1;
+  }
 
   std::optional<std::string> bundle;
   try {

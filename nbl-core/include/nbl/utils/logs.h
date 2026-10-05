@@ -7,6 +7,7 @@
 
 namespace Luau {
 struct CheckResult;
+struct LoadDefinitionFileResult;
 }
 
 namespace nbl::utils {
@@ -20,6 +21,9 @@ struct Diagnostics {
   void info(const std::string &message);
 
   void add(const Luau::CheckResult &result, const std::string &module_name);
+
+  void add_definition(const Luau::LoadDefinitionFileResult &result,
+                      const std::string &types_name);
 
   void print_summary() const;
   bool has_errors() const;

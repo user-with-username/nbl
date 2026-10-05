@@ -1,12 +1,35 @@
 #include "nbl/types/resolve.h"
 
+#include <string>
+#include <string_view>
+
 #include "nbl/types/dir.h"
 #include "nbl/utils/files.h"
 
 namespace nbl::types {
 
+namespace {
+
+std::string combined(std::string_view globals, std::string_view types) {
+  std::string out;
+  out.reserve(globals.size() + types.size() + 2);
+  out.append(globals);
+  out.push_back('\n');
+  out.append(types);
+  return out;
+}
+
+} // namespace
+
 std::optional<Resolved> resolve(const std::string &explicit_path) {
   if (explicit_path == "embedded:") {
+    return Resolved{Source::Embedded,
+                    combined(embedded_globals(), embedded_types()), ""};
+  }
+  if (explicit_path == "embedded:globals") {
+    return Resolved{Source::Embedded, std::string(embedded_globals()), ""};
+  }
+  if (explicit_path == "embedded:types") {
     return Resolved{Source::Embedded, std::string(embedded_types()), ""};
   }
 
@@ -18,12 +41,18 @@ std::optional<Resolved> resolve(const std::string &explicit_path) {
   }
 
   if (auto dir = nbl_dir()) {
-    auto path = (*dir / kTypesFilename).string();
-    if (auto content = nbl::utils::read_file_opt(path))
-      return Resolved{Source::Override, std::move(*content), path};
+    auto types_path = (*dir / kTypesFilename).string();
+    if (auto types = nbl::utils::read_file_opt(types_path)) {
+      auto globals_path = (*dir / kGlobalsFilename).string();
+      auto globals = nbl::utils::read_file_opt(globals_path);
+      std::string text = globals ? combined(*globals, *types)
+                                 : combined(embedded_globals(), *types);
+      return Resolved{Source::Override, std::move(text), types_path};
+    }
   }
 
-  return Resolved{Source::Embedded, std::string(embedded_types()), ""};
+  return Resolved{Source::Embedded,
+                  combined(embedded_globals(), embedded_types()), ""};
 }
 
 std::string load(const std::string &explicit_path) {
