@@ -1,0 +1,10 @@
+[package]
+name = "nbl-lsp"
+version = "0.1.0"
+standard = "20"
+
+[dependencies]
+nbl-core = { path = "../nbl-core" }
+nbl-types = { path = "../nbl-types" }
+lsp-framework = { git = "https://github.com/leon-bckl/lsp-framework" }
+cli11 = "2.6.2"

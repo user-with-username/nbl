@@ -1,5 +1,6 @@
 #include "nbl/types/resolve.h"
 
+#include <filesystem>
 #include <string>
 #include <string_view>
 
@@ -58,6 +59,23 @@ std::optional<Resolved> resolve(const std::string &explicit_path) {
 std::string load(const std::string &explicit_path) {
   auto r = resolve(explicit_path);
   return r ? std::move(r->content) : std::string{};
+}
+
+std::string validate_source(const std::string &value) {
+  constexpr std::string_view kEmbedded = "embedded:";
+
+  if (value.rfind(kEmbedded, 0) == 0) {
+    if (value == "embedded:" || value == "embedded:globals" ||
+        value == "embedded:types")
+      return {};
+    return value + ": expected embedded:, embedded:globals or embedded:types";
+  }
+
+  std::error_code ec;
+  if (std::filesystem::is_regular_file(value, ec))
+    return {};
+
+  return value + ": no such file";
 }
 
 } // namespace nbl::types

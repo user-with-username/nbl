@@ -53,14 +53,21 @@ private:
 } // namespace
 
 void DepGraph::build(const std::string &entry) {
-  *this = DepGraph{};
-  entry_ = nbl::utils::canonicalize(entry);
-  dfs(entry_, {});
+  static const nbl::utils::FileSystemSources kFiles;
+  build(entry, kFiles);
 }
 
-std::optional<DepNode> DepGraph::loadNode(const std::string &path,
-                                          const Luau::Location &from_loc) {
-  auto source = nbl::utils::read_file_opt(path);
+void DepGraph::build(const std::string &entry,
+                     const nbl::utils::SourceProvider &sources) {
+  *this = DepGraph{};
+  entry_ = nbl::utils::canonicalize(entry);
+  dfs(entry_, {}, sources);
+}
+
+std::optional<DepNode>
+DepGraph::loadNode(const std::string &path, const Luau::Location &from_loc,
+                   const nbl::utils::SourceProvider &sources) {
+  auto source = sources.read(path);
   if (!source) {
     errors_.push_back({path, from_loc, "cannot read file"});
     return std::nullopt;
@@ -88,7 +95,8 @@ std::optional<DepNode> DepGraph::loadNode(const std::string &path,
   return node;
 }
 
-void DepGraph::dfs(const std::string &path, const Luau::Location &from_loc) {
+void DepGraph::dfs(const std::string &path, const Luau::Location &from_loc,
+                   const nbl::utils::SourceProvider &sources) {
   if (nbl::utils::is_bundle_file(path) || done_.count(path))
     return;
 
@@ -98,7 +106,7 @@ void DepGraph::dfs(const std::string &path, const Luau::Location &from_loc) {
     return;
   }
 
-  auto node = loadNode(path, from_loc);
+  auto node = loadNode(path, from_loc, sources);
   if (!node) {
     done_.insert(path);
     return;
@@ -106,7 +114,7 @@ void DepGraph::dfs(const std::string &path, const Luau::Location &from_loc) {
 
   stack_.push_back(path);
   for (const auto &edge : node->deps)
-    dfs(edge.resolved, edge.loc);
+    dfs(edge.resolved, edge.loc, sources);
   stack_.pop_back();
 
   nodes_.emplace(path, std::move(*node));

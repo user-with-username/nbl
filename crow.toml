@@ -1,2 +1,2 @@
 [workspace]
-members = ["packages/nbl-core", "packages/nbl-types", "packages/nbl"]
+members = ["packages/nbl-core", "packages/nbl-types", "packages/nbl", "packages/nbl-lsp"]

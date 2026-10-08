@@ -1,0 +1,54 @@
+{
+    "name": "nbl-lsp",
+    "displayName": "NBL",
+    "description": "Type checking for NB scripts: nbl-lsp diagnostics, tick() checks and go to definition",
+    "version": "0.1.0",
+    "publisher": "user-with-username",
+    "license": "MIT",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Linters",
+        "Programming Languages"
+    ],
+    "main": "./extension.js",
+    "activationEvents": [
+        "onLanguage:luau"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "luau",
+                "aliases": ["Luau", "luau"],
+                "extensions": [".luau"]
+            }
+        ],
+        "configuration": {
+            "title": "NBL",
+            "properties": {
+                "nbl.serverPath": {
+                    "type": "string",
+                    "default": "nbl-lsp",
+                    "description": "Command that starts nbl-lsp."
+                },
+                "nbl.types": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Type definitions to use: a file, or embedded:[globals|types]. Empty means ~/.nbl/types.d.luau, or the definitions embedded in nbl-lsp."
+                },
+                "nbl.workers": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Checker threads. 0 lets nbl-lsp pick one from the hardware."
+                }
+            }
+        }
+    },
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.75.0"
+    }
+}

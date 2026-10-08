@@ -23,12 +23,12 @@ checksum = "5c00bbf36ba8ff47b4fb97712fc38cb2884e5b98"
 [[package]]
 name = "luau"
 version = "0.0.0"
-source = "git+https://github.com/luau-lang/luau.git#421cc8158a752c8933a3d73555fd79df631a90b6"
+source = "git+https://github.com/luau-lang/luau.git#74f768309c380d40601b28c4c4cdda27da415cef"
 
 [[package]]
 name = "nbl-core"
 version = "0.1.0"
-dependencies = ["luau 0.0.0 (git+https://github.com/luau-lang/luau.git#421cc8158a752c8933a3d73555fd79df631a90b6)"]
+dependencies = ["luau 0.0.0 (git+https://github.com/luau-lang/luau.git#74f768309c380d40601b28c4c4cdda27da415cef)"]
 
 [[package]]
 name = "nbl-types"

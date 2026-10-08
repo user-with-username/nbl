@@ -6,7 +6,6 @@
 #include "Luau/Location.h"
 
 namespace Luau {
-struct CheckResult;
 struct LoadDefinitionFileResult;
 }
 
@@ -19,8 +18,6 @@ struct Diagnostics {
   void error(const std::string &message);
   void warning(const std::string &message);
   void info(const std::string &message);
-
-  void add(const Luau::CheckResult &result, const std::string &module_name);
 
   void add_definition(const Luau::LoadDefinitionFileResult &result,
                       const std::string &types_name);

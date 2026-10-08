@@ -1,9 +1,11 @@
 #include "nbl/analysis/checker.h"
 
 #include <algorithm>
+#include <string>
 #include <vector>
 
 #include "Luau/Frontend.h"
+#include "Luau/Linter.h"
 
 #include "nbl/analysis/dep_graph.h"
 #include "nbl/utils/files.h"
@@ -11,6 +13,13 @@
 namespace nbl::analysis {
 
 namespace {
+
+/// `tick()` is called by the game, so Luau's "unused function" warning about it
+/// is always wrong.
+bool is_entrypoint_unused(const Luau::LintWarning &lint) {
+  return lint.code == Luau::LintWarning::Code_FunctionUnused &&
+         lint.text.find("'tick'") != std::string::npos;
+}
 
 std::vector<std::string> findTickModules(const DepGraph &graph) {
   std::vector<std::string> result;
@@ -21,47 +30,88 @@ std::vector<std::string> findTickModules(const DepGraph &graph) {
   return result;
 }
 
+void addModuleDiagnostics(LintResult &result, const Luau::CheckResult &check,
+                          const std::string &module) {
+  for (const Luau::TypeError &type_error : check.errors)
+    result.diagnostics.push_back({Severity::Error, type_error.moduleName,
+                                  type_error.location,
+                                  Luau::toString(type_error)});
+
+  for (const Luau::LintWarning &lint : check.lintResult.errors)
+    if (!is_entrypoint_unused(lint))
+      result.diagnostics.push_back(
+          {Severity::Error, module, lint.location, lint.text});
+
+  for (const Luau::LintWarning &lint : check.lintResult.warnings)
+    if (!is_entrypoint_unused(lint))
+      result.diagnostics.push_back(
+          {Severity::Warning, module, lint.location, lint.text});
+}
+
 } // namespace
 
-std::optional<DepGraph> check_script(Luau::Frontend &frontend,
-                                     const std::string &script,
-                                     nbl::utils::Diagnostics &diagnostics) {
+bool LintResult::has_errors() const {
+  return std::any_of(diagnostics.begin(), diagnostics.end(),
+                     [](const Diagnostic &diagnostic) {
+                       return diagnostic.severity == Severity::Error;
+                     });
+}
+
+LintResult lint(Luau::Frontend &frontend, const std::string &script,
+                bool require_entrypoint,
+                const nbl::utils::SourceProvider &sources) {
+  LintResult result;
+
   if (nbl::utils::is_bundle_file(script)) {
-    diagnostics.error(script + ": refusing to type-check a .bundle.luau file");
-    return std::nullopt;
+    result.diagnostics.push_back(
+        {Severity::Error, script, {},
+         "refusing to type-check a .bundle.luau file"});
+    return result;
   }
 
-  DepGraph graph;
-  graph.build(script);
+  result.graph.build(script, sources);
 
-  if (!graph.errors().empty()) {
-    for (const auto &e : graph.errors())
-      diagnostics.error(nbl::utils::format_location(e.module, e.loc) + ": " +
-                        e.message);
-    return std::nullopt;
+  for (const DepError &error : result.graph.errors())
+    result.diagnostics.push_back(
+        {Severity::Error, error.module, error.loc, error.message});
+
+  if (!result.graph.errors().empty())
+    return result;
+
+  const std::vector<std::string> tick_modules = findTickModules(result.graph);
+
+  if (require_entrypoint && tick_modules.empty()) {
+    result.diagnostics.push_back(
+        {Severity::Error, script, {},
+         "no module defines entrypoint `function tick()`"});
+    return result;
   }
 
-  std::vector<std::string> tick_modules = findTickModules(graph);
-
-  if (tick_modules.empty()) {
-    diagnostics.error(script +
-                      ": no module defines entrypoint `function tick()`");
-    return std::nullopt;
-  }
   if (tick_modules.size() > 1) {
-    diagnostics.error("multiple modules define `function tick()`:");
-    for (const auto &m : tick_modules)
-      diagnostics.error("  " + m);
-    return std::nullopt;
+    std::string message = "multiple modules define `function tick()`:";
+    for (const std::string &module : tick_modules)
+      message += "\n  " + module;
+
+    result.diagnostics.push_back(
+        {Severity::Error, script, {}, std::move(message)});
+    return result;
   }
 
-  for (const auto &name : graph.topo_order())
-    diagnostics.add(frontend.check(name), name);
+  // Every module in the graph is (re)checked from its current source, so the
+  // frontend has to forget what it cached for them.
+  for (const auto &[name, node] : result.graph.nodes())
+    frontend.markDirty(name);
 
-  if (diagnostics.has_errors())
-    return std::nullopt;
+  for (const std::string &name : result.graph.topo_order())
+    addModuleDiagnostics(result, frontend.check(name), name);
 
-  return graph;
+  return result;
+}
+
+LintResult lint(Luau::Frontend &frontend, const std::string &script,
+                bool require_entrypoint) {
+  static const nbl::utils::FileSystemSources kFiles;
+  return lint(frontend, script, require_entrypoint, kFiles);
 }
 
 } // namespace nbl::analysis

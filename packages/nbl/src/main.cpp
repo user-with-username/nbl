@@ -23,8 +23,11 @@ using nbl::utils::Diagnostics;
 
 constexpr const char *kTypesPackageName = "script";
 
-std::optional<nbl::analysis::DepGraph> check(const nbl::cli::Args &args,
-                                             Diagnostics &diagnostics) {
+/// Loads the type definitions and checks the script. Returns the check result
+/// when the definitions could be loaded, so the caller can decide whether to
+/// bundle the module graph.
+std::optional<nbl::analysis::LintResult> check(const nbl::cli::Args &args,
+                                               Diagnostics &diagnostics) {
   auto resolved = nbl::types::resolve(args.types);
   if (!resolved) {
     diagnostics.error(args.types + ": cannot read types file");
@@ -53,28 +56,48 @@ std::optional<nbl::analysis::DepGraph> check(const nbl::cli::Args &args,
   }
 
   try {
-    return nbl::analysis::check_script(frontend, args.script, diagnostics);
+    return nbl::analysis::lint(frontend, args.script,
+                               /*require_entrypoint*/ true);
   } catch (const std::exception &e) {
     diagnostics.error(std::string("internal error: ") + e.what());
     return std::nullopt;
   }
 }
 
+void report(const nbl::analysis::LintResult &result, Diagnostics &diagnostics) {
+  for (const nbl::analysis::Diagnostic &diagnostic : result.diagnostics) {
+    const std::string text =
+        nbl::utils::format_location(diagnostic.module, diagnostic.location) +
+        ": " + diagnostic.message;
+
+    if (diagnostic.severity == nbl::analysis::Severity::Error)
+      diagnostics.error(text);
+    else
+      diagnostics.warning(text);
+  }
+}
+
 int run_lint(const nbl::cli::Args &args, Diagnostics &diagnostics) {
-  check(args, diagnostics);
+  if (auto result = check(args, diagnostics))
+    report(*result, diagnostics);
+
   return diagnostics.has_errors() ? 1 : 0;
 }
 
 int run_bundle(const nbl::cli::Args &args, Diagnostics &diagnostics) {
-  std::optional<nbl::analysis::DepGraph> graph = check(args, diagnostics);
-  if (!graph)
+  std::optional<nbl::analysis::LintResult> result = check(args, diagnostics);
+  if (!result)
+    return 1;
+
+  report(*result, diagnostics);
+  if (result->has_errors())
     return 1;
 
   const std::string output = args.output.empty()
                                  ? nbl::utils::bundle_output_path(args.script)
                                  : args.output;
 
-  if (!nbl::utils::write_file(output, nbl::compiler::bundle(*graph))) {
+  if (!nbl::utils::write_file(output, nbl::compiler::bundle(result->graph))) {
     diagnostics.error(output + ": failed to write bundle");
     return 1;
   }

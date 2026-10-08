@@ -9,6 +9,7 @@
 #include "Luau/Location.h"
 
 #include "nbl/analysis/tick_checker.h"
+#include "nbl/utils/sources.h"
 
 namespace nbl::analysis {
 
@@ -33,7 +34,13 @@ struct DepNode {
 
 class DepGraph {
 public:
+  /// Reads the modules from disk.
   void build(const std::string &entry);
+
+  /// Reads the modules through `sources`, which is how an editor feeds in
+  /// unsaved buffers.
+  void build(const std::string &entry,
+             const nbl::utils::SourceProvider &sources);
 
   const std::string &entry() const { return entry_; }
   const std::vector<std::string> &topo_order() const { return topo_; }
@@ -44,9 +51,11 @@ public:
 
 private:
   std::optional<DepNode> loadNode(const std::string &path,
-                                  const Luau::Location &from_loc);
+                                  const Luau::Location &from_loc,
+                                  const nbl::utils::SourceProvider &sources);
 
-  void dfs(const std::string &path, const Luau::Location &from_loc);
+  void dfs(const std::string &path, const Luau::Location &from_loc,
+           const nbl::utils::SourceProvider &sources);
   std::string formatCycle(const std::string &start) const;
 
   std::string entry_;

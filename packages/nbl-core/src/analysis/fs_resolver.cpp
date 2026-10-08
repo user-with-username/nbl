@@ -50,7 +50,10 @@ std::optional<std::string> resolve_lua_path(const std::string &from_module,
 
 std::optional<Luau::SourceCode>
 FsResolver::readSource(const Luau::ModuleName &name) {
-  if (auto source = nbl::utils::read_file_opt(name))
+  static const nbl::utils::FileSystemSources kFiles;
+  const nbl::utils::SourceProvider &sources = sources_ ? *sources_ : kFiles;
+
+  if (auto source = sources.read(name))
     return Luau::SourceCode{std::move(*source), Luau::SourceCode::Type::Module};
   return std::nullopt;
 }

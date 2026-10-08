@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Luau/Frontend.h"
-#include "Luau/Linter.h"
 #include "Luau/ToString.h"
 
 namespace nbl::utils {
@@ -18,11 +17,6 @@ constexpr const char *kResetColor = "\x1b[0m";
 bool is_default_location(const Luau::Location &loc) {
   return loc.begin.line == 0 && loc.begin.column == 0 &&
          loc.end.line == 0 && loc.end.column == 0;
-}
-
-bool is_entrypoint_unused(const Luau::LintWarning &lint) {
-  return lint.code == Luau::LintWarning::Code_FunctionUnused &&
-         lint.text.find("'tick'") != std::string::npos;
 }
 
 } // namespace
@@ -61,21 +55,6 @@ void Diagnostics::warning(const std::string &message) {
 
 void Diagnostics::info(const std::string &message) {
   out_ << kInfoColor << "info:" << kResetColor << ' ' << message << '\n';
-}
-
-void Diagnostics::add(const Luau::CheckResult &result,
-                      const std::string &module_name) {
-  for (const Luau::TypeError &type_error : result.errors)
-    error(format_location(type_error.moduleName, type_error.location) + ": " +
-          Luau::toString(type_error));
-
-  for (const Luau::LintWarning &lint : result.lintResult.errors)
-    if (!is_entrypoint_unused(lint))
-      error(format_location(module_name, lint.location) + ": " + lint.text);
-
-  for (const Luau::LintWarning &lint : result.lintResult.warnings)
-    if (!is_entrypoint_unused(lint))
-      warning(format_location(module_name, lint.location) + ": " + lint.text);
 }
 
 void Diagnostics::add_definition(const Luau::LoadDefinitionFileResult &result,
